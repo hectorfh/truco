@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.9.0.min.js"></script>
+<script>
+    function main() {
+        drawCard();
+        alert('hola mundo');
+    }
+
+    function drawCard(id) {
+        const divId = 'cardDiv_' + id;
+        $('#gameDiv').append('<div id="' + divId + '"></div>');
+
+        const div = $('#' + divId);
+        div.css('background-image', "url('naipes.png')");
+        div.css('width', '80px');
+        div.css('height', '80px');
+    }
+
+    $(function() { main(); });
+</script>
+</head>
+<body>
+<div id="gameDiv"></div>
+</body>
+</html>
