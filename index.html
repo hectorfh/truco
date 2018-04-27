@@ -3,22 +3,90 @@
 <head>
 <script src="jquery-1.9.0.min.js"></script>
 <script>
-    function main() {
-        drawCard();
-        alert('hola mundo');
-    }
 
-    function drawCard(id) {
-        const divId = 'cardDiv_' + id;
-        $('#gameDiv').append('<div id="' + divId + '"></div>');
+const truco = {
 
-        const div = $('#' + divId);
-        div.css('background-image', "url('naipes.png')");
-        div.css('width', '80px');
-        div.css('height', '80px');
-    }
+/**
+ * Valores de las cartas.
+ */
+valores: [ /* BASTO */ 15, 11, 12, 3, 4, 5,  6, 7, 8, 9,
+           /* COPA */  10, 11, 12, 3, 4, 5,  6, 7, 8, 9,
+           /* ESPADA*/ 16, 11, 12, 3, 4, 5, 14, 7, 8, 9,
+           /* ORO */   10, 11, 12, 3, 4, 5, 13, 7, 8, 9],
 
-    $(function() { main(); });
+NULL: -1,
+
+AL_MAZO: -2,
+TRUCO: -3,
+RETRUCO: -4,
+VALE_4: -5,
+
+HUMANO: 0,
+COMPUTADORA: 1,
+
+probabilidadesRequeridasApuestaNormal: [0.6, 0.7, 0.95],
+probabilidadesRequeridasAceptacionNormal: [0.5, 0.6, 0.9],
+
+main: function() {
+
+  const mazo = this.shuffleArray(Array(40).fill().map((e,i) => i));
+
+  this.mano = {
+    cartasHumano: mazo.slice(0, 3),
+    cartasComputadora: mazo.slice(3, 6),
+    cartasJugadas: []
+  };
+
+  this.drawCard(1);
+
+  console.info(this.mano);
+  console.info(mazo);
+  console.info(cartasHumano);
+  console.info(cartasComputadora);
+
+},
+
+drawCard: function(id) {
+  const divId = 'cardDiv_' + id;
+  $('#gameDiv').append('<div id="' + divId + '"></div>');
+
+  $('#' + divId).
+    css('background-image', "url('naipes.png')").
+    css('width', '72px').
+    css('height', '96px');
+},
+
+valor: function(carta) {
+
+
+  return valores[carta];
+
+},
+
+shuffleArray: function(array) {
+
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+
+  }
+
+  return array;
+
+}};
+
+$(function() { truco.main(); });
+
 </script>
 </head>
 <body>
