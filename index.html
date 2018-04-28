@@ -10,9 +10,9 @@ const truco = {
  * Valores de las cartas.
  */
 valores: [ /* BASTO */ 15, 11, 12, 3, 4, 5,  6, 7, 8, 9,
-           /* COPA */  10, 11, 12, 3, 4, 5,  6, 7, 8, 9,
+           /* ORO */   10, 11, 12, 3, 4, 5, 13, 7, 8, 9,
            /* ESPADA*/ 16, 11, 12, 3, 4, 5, 14, 7, 8, 9,
-           /* ORO */   10, 11, 12, 3, 4, 5, 13, 7, 8, 9],
+           /* COPA */  10, 11, 12, 3, 4, 5,  6, 7, 8, 9 ],
 
 NULL: -1,
 
@@ -29,31 +29,65 @@ probabilidadesRequeridasAceptacionNormal: [0.5, 0.6, 0.9],
 
 main: function() {
 
+  $('#gameDiv').css('position', 'relative');
+
   const mazo = this.shuffleArray(Array(40).fill().map((e,i) => i));
 
-  this.mano = {
-    cartasHumano: mazo.slice(0, 3),
-    cartasComputadora: mazo.slice(3, 6),
-    cartasJugadas: []
+  truco.mano = {
+    humanCards: mazo.slice(0, 3),
+    computerCards: mazo.slice(3, 6),
+    playedCards: []
   };
 
-  this.drawCard(1);
+  truco.mano.humanCards.forEach(function(card, i) {
+    truco.drawCard(i, i * 76, 100);
+  });
 
   console.info(this.mano);
-  console.info(mazo);
-  console.info(cartasHumano);
-  console.info(cartasComputadora);
+
+  $('#gameDiv').on('click', '.humanCard', truco.playCard);
 
 },
 
-drawCard: function(id) {
-  const divId = 'cardDiv_' + id;
-  $('#gameDiv').append('<div id="' + divId + '"></div>');
+playCard: function() {
 
-  $('#' + divId).
+  const i = $(this).data('i');
+
+  /**
+   * Push played card on playedCards array.
+   */
+  truco.mano.playedCards.push(truco.mano.humanCards[i]);
+
+  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 +
+            Math.floor(Math.random() * 40)
+  const y = 0 + Math.floor(Math.random() * 30)
+
+  $(this).css('z-index', truco.mano.playedCards.length);
+
+  $(this).animate({ left: x, top: y }, 200,
+      function() { });
+
+  $(this).css('pointer', 'cursor');
+
+},
+
+drawCard: function(i, x, y) {
+
+  $('<div></div>').appendTo('#gameDiv').
+    attr('id', 'humanCardDiv_' + i).
+    addClass('humanCard').
+    data('i', i).
+    css('cursor', 'pointer').
     css('background-image', "url('naipes.png')").
+    css('position', 'absolute').
     css('width', '72px').
-    css('height', '96px');
+    css('height', '96px').
+    css('left', x + 'px').
+    css('top', y + 'px').
+    css('background-position-x', truco.mano.humanCards[i] % 10 * -72 + 'px').
+    css('background-position-y',
+                         Math.floor(truco.mano.humanCards[i] / 10) * 96 + 'px');
+
 },
 
 valor: function(carta) {
