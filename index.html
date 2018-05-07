@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" href="commodore-64-v621c-webfont.css" />
 <script src="jquery-1.9.0.min.js"></script>
 <script>
 
 const truco = {
+
+CARD_WIDTH: 120,
+CARD_HEIGHT: 120,
+
+BACKGROUND_COLOR: 'black',
+TEXT_COLOR: '#EEEEEE',
 
 /**
  * Valores de las cartas.
@@ -29,7 +36,11 @@ probabilidadesRequeridasAceptacionNormal: [0.5, 0.6, 0.9],
 
 main: function() {
 
-  $('#gameDiv').css('position', 'relative');
+  $('#gameDiv').
+    css('position', 'relative').
+    css('width', '800px').
+    css('height', '600px').
+    css('background-color', 'black');
 
   const mazo = this.shuffleArray(Array(40).fill().map((e,i) => i));
 
@@ -40,12 +51,99 @@ main: function() {
   };
 
   truco.mano.humanCards.forEach(function(card, i) {
-    truco.drawCard(i, i * 76, 100);
+    truco.drawCard(i, i * (truco.CARD_WIDTH + 4), 450);
   });
 
   console.info(this.mano);
 
   $('#gameDiv').on('click', '.humanCard', truco.playCard);
+
+  truco.drawMenu();
+
+  truco.drawScore(500, 0);
+
+},
+
+drawScore: function(left, top) {
+
+  const drawSquare = function(left, top) {
+    const color = truco.TEXT_COLOR;
+
+    drawDiv(left, top, 40, 5, color);
+    drawDiv(left, top, 5, 40, color);
+    drawDiv(left + 35, top, 5, 40, color);
+    drawDiv(left, top + 35, 40, 5, color);
+
+    for (var i = 0; i < 31; i += 3) {
+      drawDiv(left + i, top + i, 5, 5, color);
+    }
+  }
+
+  const drawDiv = function(left, top, width, height, color) {
+    return $('<div></div>').appendTo('#gameDiv').
+             css('position', 'absolute').
+             css('background-color', color).
+             css('left', left + 'px').
+             css('top', top + 'px').
+             css('width', width + 'px').
+             css('height', height + 'px');
+  }
+
+  drawDiv(left + 115, top, 10, 220, truco.TEXT_COLOR);
+
+  drawDiv(left +  40, top + 10, 30, 30, 'default').css('font-size', '2em').
+                                              html('H');
+
+  drawDiv(left + 170, top + 10, 30, 30, 'default').css('font-size', '2em').
+                                              html('C');
+
+  drawSquare(left + 10, top + 70);
+  drawSquare(left + 10, top + 120);
+  drawSquare(left + 10, top + 170);
+
+  drawSquare(left + 60, top + 70);
+  drawSquare(left + 60, top + 120);
+  drawSquare(left + 60, top + 170);
+
+  drawSquare(left + 150, top + 70);
+  drawSquare(left + 150, top + 120);
+  drawSquare(left + 150, top + 170);
+
+  drawSquare(left + 200, top + 70);
+  drawSquare(left + 200, top + 120);
+  drawSquare(left + 200, top + 170);
+
+},
+
+drawMenu: function() {
+
+  $('<div></div>').appendTo('#gameDiv').
+    attr('id', 'menu').
+    css('position', 'absolute').
+    css('left', '400px').
+    css('bottom', '30px').
+    css('width', '400px');
+
+  truco.drawMenuOption('Contra flor al resto');
+  truco.drawMenuOption('Me voy');
+  truco.drawMenuOption('Quiero');
+  truco.drawMenuOption('No quiero');
+  truco.drawMenuOption('Falta envido');
+
+},
+
+drawMenuOption: function(text) {
+
+  $('<div>' + text + '</div>').appendTo('#menu').
+    css('cursor', 'pointer').
+    css('padding', '2px 0 2px 15px').
+    hover(function() {
+            $(this).css('background-color', '#EEEEEE').
+                    css('color', 'black');
+          }, function(){
+            $(this).css('background-color', 'black').
+                    css('color', '#EEEEEE');
+          });
 
 },
 
@@ -80,13 +178,16 @@ drawCard: function(i, x, y) {
     css('cursor', 'pointer').
     css('background-image', "url('naipes.png')").
     css('position', 'absolute').
-    css('width', '72px').
-    css('height', '96px').
+    css('width', truco.CARD_WIDTH + 'px').
+    css('height', truco.CARD_HEIGHT + 'px').
+    css('background-size',
+                  truco.CARD_WIDTH * 10 + 'px ' + truco.CARD_HEIGHT * 4 + 'px').
     css('left', x + 'px').
     css('top', y + 'px').
-    css('background-position-x', truco.mano.humanCards[i] % 10 * -72 + 'px').
+    css('background-position-x',
+                      truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH + 'px').
     css('background-position-y',
-                         Math.floor(truco.mano.humanCards[i] / 10) * 96 + 'px');
+          Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT + 'px');
 
 },
 
@@ -124,6 +225,15 @@ $(function() { truco.main(); });
 </script>
 </head>
 <body>
-<div id="gameDiv"></div>
+<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:150%">
+  <div style="width:400px">
+  Aqui' me pongo a cantar
+  Al compa's de la vigüela,
+  que el hombre que lo desvela
+  una pena estrordinaria,
+  como la ave solitaria
+  con el cantar se consuela.
+  </div>
+</div>
 </body>
 </html>
