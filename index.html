@@ -16,10 +16,10 @@ TEXT_COLOR: '#EEEEEE',
 /**
  * Valores de las cartas.
  */
-valores: [ /* BASTO */ 15, 11, 12, 3, 4, 5,  6, 7, 8, 9,
-           /* ORO */   10, 11, 12, 3, 4, 5, 13, 7, 8, 9,
-           /* ESPADA*/ 16, 11, 12, 3, 4, 5, 14, 7, 8, 9,
-           /* COPA */  10, 11, 12, 3, 4, 5,  6, 7, 8, 9 ],
+valores: [ /* BASTO  */ 15, 11, 12, 3, 4, 5,  6, 7, 8, 9,
+           /* ORO    */ 10, 11, 12, 3, 4, 5, 13, 7, 8, 9,
+           /* ESPADA */ 16, 11, 12, 3, 4, 5, 14, 7, 8, 9,
+           /* COPA   */ 10, 11, 12, 3, 4, 5,  6, 7, 8, 9 ],
 
 NULL: -1,
 
@@ -34,22 +34,28 @@ COMPUTADORA: 1,
 probabilidadesRequeridasApuestaNormal: [0.6, 0.7, 0.95],
 probabilidadesRequeridasAceptacionNormal: [0.5, 0.6, 0.9],
 
+cardsEnabled: false,
+
 main: function() {
 
+  // create game div
   $('#gameDiv').
     css('position', 'relative').
     css('width', '800px').
     css('height', '600px').
     css('background-color', 'black');
 
+  // shuffle cards array
   const mazo = this.shuffleArray(Array(40).fill().map((e,i) => i));
 
+  // Set human and computer cards. Reset played cards array.
   truco.mano = {
     humanCards: mazo.slice(0, 3),
     computerCards: mazo.slice(3, 6),
     playedCards: []
   };
 
+  // draw human cards
   truco.mano.humanCards.forEach(function(card, i) {
     truco.drawCard(i, i * (truco.CARD_WIDTH + 4), 450);
   });
@@ -62,25 +68,63 @@ main: function() {
 
   truco.drawScore(500, 0);
 
+  truco.enableHumanCards();
 },
 
-drawScore: function(left, top) {
+/**
+ * Game loop.
+ */
+loop: function(event) {
 
-  const drawSquare = function(left, top) {
-    const color = truco.TEXT_COLOR;
+  switch(event.name) {
+    case 'HUMAN_CARD_PLAYED':
+  }
 
-    drawDiv(left, top, 40, 5, color);
-    drawDiv(left, top, 5, 40, color);
-    drawDiv(left + 35, top, 5, 40, color);
-    drawDiv(left, top + 35, 40, 5, color);
+},
 
-    for (var i = 0; i < 31; i += 3) {
-      drawDiv(left + i, top + i, 5, 5, color);
+/**
+ * Draw score.
+ *
+ */
+drawScore: function(left, top, humanPoints, computerPoints) {
+
+  const PENCIL_WIDTH = 5;
+  const PENCIL_LONG = 40;
+  const INTRA_HORIZONTAL_MARGIN = 2;
+  const INTRA_VERTICAL_MARGIN = 2;
+
+  /**
+   * Draw score square.
+   */
+  const drawSquare = function(left, top, points) {
+
+    const COLOR = truco.TEXT_COLOR;
+
+    if (points > 0) {
+        drawDiv(left, top, PENCIL_LONG, PENCIL_WIDTH, COLOR);
+    }
+
+    if (points > 1) {
+        drawDiv(left, top, PENCIL_WIDTH, PENCIL_LONG, COLOR);
+    }
+
+    if (points > 2) {
+        drawDiv(left + PENCIL_LONG - PENCIL_WIDTH, top, PENCIL_WIDTH, PENCIL_LONG, COLOR);
+    }
+
+    if (points > 3) {
+        drawDiv(left, top + PENCIL_LONG - PENCIL_WIDTH, PENCIL_LONG, PENCIL_WIDTH, COLOR);
+    }
+
+    if (points > 4) {
+        for (var i = 0; i < 31; i += 3) {
+          drawDiv(left + i, top + i, PENCIL_WIDTH, PENCIL_WIDTH, COLOR);
+        }
     }
   }
 
   const drawDiv = function(left, top, width, height, color) {
-    return $('<div></div>').appendTo('#gameDiv').
+    return $('<div></div>').appendTo('#scoreDiv').
              css('position', 'absolute').
              css('background-color', color).
              css('left', left + 'px').
@@ -89,29 +133,43 @@ drawScore: function(left, top) {
              css('height', height + 'px');
   }
 
-  drawDiv(left + 115, top, 10, 220, truco.TEXT_COLOR);
+  const drawX = function(left, top, points) {
+    const POINTS_PER_SQUARE = 5;
+    const SQUARES_PER_COL = 3;
 
-  drawDiv(left +  40, top + 10, 30, 30, 'default').css('font-size', '2em').
-                                              html('H');
+    for (var i = 0; i <= Math.floor(points / POINTS_PER_SQUARE); i++) {
+      const row = i % SQUARES_PER_COL;
+      const col = Math.floor(i / SQUARES_PER_COL);
+      const pointsInSquare = (i == Math.floor(points / POINTS_PER_SQUARE) ? points % POINTS_PER_SQUARE
+                                                                          : POINTS_PER_SQUARE);
+      drawSquare(left + 10 + 60 * col, top + 60 + 50 * row, pointsInSquare);
+    }
+  }
 
-  drawDiv(left + 170, top + 10, 30, 30, 'default').css('font-size', '2em').
-                                              html('C');
+  // remove score div if exists.
+  $('#scoreDiv').remove();
 
-  drawSquare(left + 10, top + 70);
-  drawSquare(left + 10, top + 120);
-  drawSquare(left + 10, top + 170);
+  $('<div></div>').appendTo('#gameDiv').attr('id',               'scoreDiv').
+                                         css('position',         'absolute').
+                                         css('background-color', 'green').
+                                         css('left',             left + 'px').
+                                         css('top',              top + 'px').
+                                         css('width',            '250px').
+                                         css('height',           '220px');
 
-  drawSquare(left + 60, top + 70);
-  drawSquare(left + 60, top + 120);
-  drawSquare(left + 60, top + 170);
+  // split line
+  drawDiv(115, 0, 10, 220, truco.TEXT_COLOR);
 
-  drawSquare(left + 150, top + 70);
-  drawSquare(left + 150, top + 120);
-  drawSquare(left + 150, top + 170);
+  // H
+  drawDiv(40, top + 10, 30, 30, 'default').css('font-size', '2em').
+                                            html('H');
 
-  drawSquare(left + 200, top + 70);
-  drawSquare(left + 200, top + 120);
-  drawSquare(left + 200, top + 170);
+  // C
+  drawDiv(170, top + 10, 30, 30, 'default').css('font-size', '2em').
+                                            html('C');
+
+  drawX(0, 0, 18);  
+  drawX(100, 0, 22);
 
 },
 
@@ -149,23 +207,31 @@ drawMenuOption: function(text) {
 
 playCard: function() {
 
+  // Get card index.
   const i = $(this).data('i');
 
-  /**
-   * Push played card on playedCards array.
-   */
-  truco.mano.playedCards.push(truco.mano.humanCards[i]);
+  // Get card.
+  const card = truco.mano.humanCards[i];
 
-  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 +
-            Math.floor(Math.random() * 40)
-  const y = 0 + Math.floor(Math.random() * 30)
+  // Return if cards are disabled or the card is already played (is in player cards array).
+  if (!truco.cardsEnabled || truco.mano.playedCards.indexOf(card) != -1) {
+    return;
+  }
+  // else cards are enabled and the card has not been played yet.
 
+  // Push played card on playedCards array.
+  truco.mano.playedCards.push(card);
+
+  // Put card div on top of z index.
   $(this).css('z-index', truco.mano.playedCards.length);
 
-  $(this).animate({ left: x, top: y }, 200,
-      function() { });
+  truco.disableHumanCards();
 
-  $(this).css('pointer', 'cursor');
+  // Move played card div.
+  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
+  const y = 0 + Math.floor(Math.random() * 30);
+
+  $(this).animate({ left: x, top: y }, 200, function() { truco.loop({name: 'HUMAN_CARD_PLAYED', card: i}); });
 
 },
 
@@ -175,7 +241,6 @@ drawCard: function(i, x, y) {
     attr('id', 'humanCardDiv_' + i).
     addClass('humanCard').
     data('i', i).
-    css('cursor', 'pointer').
     css('background-image', "url('naipes.png')").
     css('position', 'absolute').
     css('width', truco.CARD_WIDTH + 'px').
@@ -189,6 +254,24 @@ drawCard: function(i, x, y) {
     css('background-position-y',
           Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT + 'px');
 
+},
+
+enableHumanCards: function() {
+
+  $('.humanCard').css('cursor', 'pointer');
+  truco.cardsEnabled = true;
+
+},
+
+disableHumanCards: function() {
+
+  $('.humanCard').css('cursor', 'default');
+  truco.cardsEnabled = false;
+
+},
+
+nextPlayer: function() {
+  // TODO
 },
 
 valor: function(carta) {
