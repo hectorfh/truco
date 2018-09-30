@@ -10,6 +10,9 @@ const truco = {
 CARD_WIDTH: 120,
 CARD_HEIGHT: 120,
 
+COMP_CARD_WIDTH: 60,
+COMP_CARD_HEIGHT: 60,
+
 BACKGROUND_COLOR: 'black',
 TEXT_COLOR: '#EEEEEE',
 
@@ -28,8 +31,8 @@ TRUCO: -3,
 RETRUCO: -4,
 VALE_4: -5,
 
-HUMANO: 0,
-COMPUTADORA: 1,
+HUMAN: 0,
+COMPUTER: 1,
 
 probabilidadesRequeridasApuestaNormal: [0.6, 0.7, 0.95],
 probabilidadesRequeridasAceptacionNormal: [0.5, 0.6, 0.9],
@@ -52,12 +55,18 @@ main: function() {
   truco.mano = {
     humanCards: mazo.slice(0, 3),
     computerCards: mazo.slice(3, 6),
-    playedCards: []
+    playedCards: [],
+    manoPlayer: null
   };
 
   // draw human cards
   truco.mano.humanCards.forEach(function(card, i) {
     truco.drawCard(i, i * (truco.CARD_WIDTH + 4), 450);
+  });
+
+  // draw computer cards
+  truco.mano.computerCards.forEach(function(card, i) {
+    truco.drawComputerCard(i, 1 + i * (truco.COMP_CARD_WIDTH + 4), 10);
   });
 
   console.info(this.mano);
@@ -68,18 +77,17 @@ main: function() {
 
   truco.drawScore(500, 0);
 
-  truco.enableHumanCards();
-},
+  
 
-/**
- * Game loop.
- */
-loop: function(event) {
+  truco.mano.manoPlayer = truco.getManoPlayer(null);
 
-  switch(event.name) {
-    case 'HUMAN_CARD_PLAYED':
+  if (truco.mano.manoPlayer == truco.HUMAN) {
+    //???
+    truco.enableHumanCards();
   }
-
+  else {
+    //???
+  }
 },
 
 /**
@@ -227,11 +235,37 @@ playCard: function() {
 
   truco.disableHumanCards();
 
-  // Move played card div.
+  // Get random card destination.
   const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
-  const y = 0 + Math.floor(Math.random() * 30);
+  const y = 240 + Math.floor(Math.random() * 30);
 
-  $(this).animate({ left: x, top: y }, 200, function() { truco.loop({name: 'HUMAN_CARD_PLAYED', card: i}); });
+  $(this).animate({ left: x, top: y }, 200, function() { truco.playCardAfterAnimation(i); });
+
+},
+
+playCardAfterAnimation: function(i) {
+
+  // Get random card destination.
+  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
+  const y = 240 + Math.floor(Math.random() * 30);
+
+  // Put card div on top of z index.
+  $('#computerCardDiv_0').css('z-index', truco.mano.playedCards.length);
+
+  const cardX = truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH;
+  const cardY = Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT;
+
+  $('#computerCardDiv_0').animate({ left: x,
+                                    top: y,
+                                    width: truco.CARD_WIDTH,
+                                    height: truco.CARD_HEIGHT,
+                                    backgroundSize: '100%'
+                                  }, 2000, function() { $(this).css({ backgroundImage: "url('naipes.png')",
+                                                                      backgroundSize: truco.CARD_WIDTH * 10 + 'px '
+                                                                                      + truco.CARD_HEIGHT * 4 + 'px',
+                                                                      backgroundPositionX: cardX,
+                                                                      backgroundPositionY: cardY
+                                                                    }); });
 
 },
 
@@ -253,6 +287,22 @@ drawCard: function(i, x, y) {
                       truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH + 'px').
     css('background-position-y',
           Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT + 'px');
+
+},
+
+drawComputerCard: function(i, x, y) {
+
+  $('<div></div>').appendTo('#gameDiv').
+    attr('id', 'computerCardDiv_' + i).
+    addClass('computerCard').
+    data('i', i).
+    css('background-image', "url('atras.png')").
+    css('position', 'absolute').
+    css('width', truco.COMP_CARD_WIDTH + 'px').
+    css('height', truco.COMP_CARD_HEIGHT + 'px').
+    css('background-size', '100%').
+    css('left', x + 'px').
+    css('top', y + 'px');
 
 },
 
@@ -281,6 +331,13 @@ valor: function(carta) {
 
 },
 
+/**
+ * Get "mano" player randomly if it's the first mano or depending on who was the last mano player.
+ */
+getManoPlayer: function(previousManoPlayer) {
+  return truco.getRandomInt(0, 1);
+},
+
 shuffleArray: function(array) {
 
   var currentIndex = array.length, temporaryValue, randomIndex;
@@ -301,6 +358,13 @@ shuffleArray: function(array) {
 
   return array;
 
+},
+
+/**
+ * Get random integer in a range between min inclusive and max inclusive.
+ */
+getRandomInt: function(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }};
 
 $(function() { truco.main(); });
@@ -308,8 +372,9 @@ $(function() { truco.main(); });
 </script>
 </head>
 <body>
-<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:150%">
-  <div style="width:400px">
+<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:140%">
+  <div style="width:500px">
+    <br /><br /><br /><br />
   Aqui' me pongo a cantar
   Al compa's de la vigüela,
   que el hombre que lo desvela
