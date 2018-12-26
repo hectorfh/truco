@@ -86,8 +86,65 @@ main: function() {
     truco.enableHumanCards();
   }
   else {
-    //???
+    const i = truco.getNextCompCard();
+    truco.mano.playedCards.push(truco.mano.computerCards[i]);
+    truco.moveCompCard(i);
+    // TODO enable human cards after 2000 ms
+    truco.enableHumanCards();
   }
+
+},
+
+moveCompCard: function(i) {
+
+  // Get random card destination.
+  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
+  const y = 240 + Math.floor(Math.random() * 30);
+
+  // Put card div on top of z index.
+  $('#computerCardDiv_' + i).css('z-index', truco.mano.playedCards.length);
+
+
+  $('#computerCardDiv_' + i).animate({ left: x,
+                                       top: y,
+                                       width: truco.CARD_WIDTH,
+                                       height: truco.CARD_HEIGHT,
+                                       backgroundSize: '100%'
+                                     }, 2000, function() { truco.showCompCard(i) });
+
+},
+
+showCompCard: function(i) {
+  
+  // Card image position.
+  const cardX = truco.mano.computerCards[i] % 10 * -truco.CARD_WIDTH;
+  const cardY = Math.floor(truco.mano.computerCards[i] / 10) * truco.CARD_HEIGHT;
+
+  $('#computerCardDiv_' + i).css({ backgroundImage: "url('naipes.png')",
+                                   backgroundSize: truco.CARD_WIDTH * 10 + 'px '
+                                                   + truco.CARD_HEIGHT * 4 + 'px',
+                                   backgroundPositionX: cardX,
+                                   backgroundPositionY: cardY
+                                 });
+
+  if (truco.nextPlayer() == truco.HUMAN) {
+    truco.enableHumanCards();
+  }
+  else {
+    const i = truco.getNextCompCard();
+    truco.mano.playedCards.push(truco.mano.computerCards[i]);
+    truco.moveCompCard(i);
+  }
+
+},
+
+/**
+ * Get next computer card.
+ */
+getNextCompCard: function() {
+  const nonPlayedCards = truco.mano.computerCards.filter(function(card) { return !truco.mano.playedCards.includes(card); });
+
+  return truco.mano.computerCards.indexOf(nonPlayedCards[truco.getRandomInt(0, nonPlayedCards.length - 1)]);
 },
 
 /**
@@ -239,33 +296,20 @@ playCard: function() {
   const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
   const y = 240 + Math.floor(Math.random() * 30);
 
-  $(this).animate({ left: x, top: y }, 200, function() { truco.playCardAfterAnimation(i); });
+  $(this).animate({ left: x, top: y }, 200, function() { truco.playCardAfterAnimation(); });
 
 },
 
-playCardAfterAnimation: function(i) {
+playCardAfterAnimation: function() {
 
-  // Get random card destination.
-  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
-  const y = 240 + Math.floor(Math.random() * 30);
-
-  // Put card div on top of z index.
-  $('#computerCardDiv_0').css('z-index', truco.mano.playedCards.length);
-
-  const cardX = truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH;
-  const cardY = Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT;
-
-  $('#computerCardDiv_0').animate({ left: x,
-                                    top: y,
-                                    width: truco.CARD_WIDTH,
-                                    height: truco.CARD_HEIGHT,
-                                    backgroundSize: '100%'
-                                  }, 2000, function() { $(this).css({ backgroundImage: "url('naipes.png')",
-                                                                      backgroundSize: truco.CARD_WIDTH * 10 + 'px '
-                                                                                      + truco.CARD_HEIGHT * 4 + 'px',
-                                                                      backgroundPositionX: cardX,
-                                                                      backgroundPositionY: cardY
-                                                                    }); });
+  if (truco.nextPlayer() == truco.HUMAN) {
+    truco.enableHumanCards();
+  }
+  else {
+    const i = truco.getNextCompCard();
+    truco.mano.playedCards.push(truco.mano.computerCards[i]);
+    truco.moveCompCard(i);
+  }
 
 },
 
@@ -321,14 +365,28 @@ disableHumanCards: function() {
 },
 
 nextPlayer: function() {
-  // TODO
+  const nextPlayerIsMano = function() {
+    switch (truco.mano.playedCards.length) {
+      case 0:
+        return true;
+      case 1:
+        return false;
+      case 2:
+        return truco.valor(truco.mano.playedCards[0]) >= truco.valor(truco.mano.playedCards[1]);
+      case 3:
+        return truco.valor(truco.mano.playedCards[0]) < truco.valor(truco.mano.playedCards[1]);
+      case 4:
+        return truco.valor(truco.mano.playedCards[0]) <= truco.valor(truco.mano.playedCards[1]);
+      case 5:
+        return truco.valor(truco.mano.playedCards[0]) > truco.valor(truco.mano.playedCards[1]);
+    }
+  }
+
+  return nextPlayerIsMano() ? truco.mano.manoPlayer : truco.piePlayer();
 },
 
 valor: function(carta) {
-
-
-  return valores[carta];
-
+  return truco.valores[carta];
 },
 
 /**
@@ -336,6 +394,10 @@ valor: function(carta) {
  */
 getManoPlayer: function(previousManoPlayer) {
   return truco.getRandomInt(0, 1);
+},
+
+piePlayer: function() {
+  return truco.mano.manoPlayer == truco.HUMAN ? truco.COMPUTER : truco.HUMAN;
 },
 
 shuffleArray: function(array) {
@@ -371,8 +433,8 @@ $(function() { truco.main(); });
 
 </script>
 </head>
-<body>
-<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:140%">
+<body style="background:black">
+<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:140%; margin:auto">
   <div style="width:500px">
     <br /><br /><br /><br />
   Aqui' me pongo a cantar
