@@ -1,17 +1,156 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width; initial-scale=1.0" />
 <link rel="stylesheet" href="commodore-64-v621c-webfont.css" />
+<style>
+  /* The animation code */
+  @keyframes open-menu-animation {
+    from {max-width: 0px; max-height: 0px}
+    to {max-width: 300px; max-height: 300px}
+  }
+
+  @keyframes close-menu-animation {
+    from {max-width: 300px; max-height: 300px}
+    to {max-width: 0px; max-height: 0px}
+  }
+
+  #cardsContainer {
+    position:absolute;
+    width:300px;
+    height:210px;
+    left:0px;
+    top:0px;
+  }
+
+  #scoreContainer {
+    position:absolute;
+    left:120px;
+    top:10px;
+  }
+
+  .compCard {
+    position: absolute;
+    background-image: url('atras.png');
+    background-size: 100%;
+    width: 70px;
+    height: 70px;
+    display: none;
+  }
+
+  .card {
+    position: absolute;
+    background-image: url('naipes.png');
+    background-size: 700px 280px;
+    width: 70px;
+    height: 70px;
+    top: 140px;
+    transition: all 200ms ease-in-out;
+    cursor: pointer;
+  }
+
+  #menuContainer {
+    position: absolute;
+    width: 43px;
+    height: 13px;
+    left: 230px;
+    top: 141px;
+    border: 1px solid white;
+    border-radius: 7px;
+    font-size:9px;
+    padding:27px 8px;
+    cursor: pointer;
+  }
+
+  #menu {
+      /*$('<div></div>').appendTo('#gameDiv').
+    attr('id', 'menu').
+    css('position', 'absolute').
+    css('left', '0px').
+    css('bottom', '130px').
+    css('overflow', 'hidden').
+    css('font-size', '1em').
+    css('color', 'white').
+    css('border', '2px solid white').
+    css('width', '100%').
+    css('height', '330px').
+    css('animation-name', 'open-animation').
+    css('animation-duration', '500ms').
+    css('background-color', 'black');
+
+  $('<div></div>').appendTo('#menu').
+    css('position', 'relative').
+    css('height', '30px');*/
+
+    position: absolute;
+    overflow:hidden;
+    right: -1px;
+    bottom: -1px;
+    width: 300px;
+    max-width: 0px;
+    z-index: 1000;
+    background-color: black;
+    font-size:20px;
+  }
+
+  .menuOption {
+    overflow:hidden;
+    padding:10px 0;
+  }
+
+  #openMenu {
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+  }
+
+  #closeMenu {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding:8px;
+    font-size:30px;
+  }
+
+</style>
 <script src="jquery-1.9.0.min.js"></script>
+</head>
+<body style="background:black">
+<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:140%; margin:auto">
+  <div>
+    Tr<span style="font-size:105%">u</span><span style="font-size:110%">c</span><span style="font-size:100%">o</span><span style="font-size:50%"> v0.1</span>
+  </div>
+  <div> <span style="font-size:70%; margin-left:30px">by Tito</span></div>
+  <div id="scoreContainer"></div>
+  <div id="cardsContainer">
+    <div id="compCard_0" class="compCard"></div>
+    <div id="compCard_1" class="compCard"></div>
+    <div id="compCard_2" class="compCard"></div>
+
+    <div id="card_0" class="card" onclick="truco.playCard(0)"></div>
+    <div id="card_1" class="card" onclick="truco.playCard(1)"></div>
+    <div id="card_2" class="card" onclick="truco.playCard(2)"></div>
+  </div>
+  <div id="menuContainer">
+    <div id="openMenu" onclick="truco.showMenu()">Cantar</div>
+    <div id="menu">
+      <div class="menuOption">&gt; Opcion 1</div>
+      <div class="menuOption">&gt; Opcion 2</div>
+      <div class="menuOption">&gt; Opcion 3</div>
+      <div class="menuOption">&gt; Opcion 4</div>
+      <div class="menuOption">&gt; Opcion 5</div>
+      <div id="closeMenu" onclick="truco.closeMenu()">X</div>
+    </div>
+  </div>
+</div>
 <script>
 
 const truco = {
 
-CARD_WIDTH: 120,
-CARD_HEIGHT: 120,
-
-COMP_CARD_WIDTH: 60,
-COMP_CARD_HEIGHT: 60,
+CARD_WIDTH: 70,
+CARD_HEIGHT: 70,
 
 BACKGROUND_COLOR: 'black',
 TEXT_COLOR: '#EEEEEE',
@@ -44,8 +183,8 @@ main: function() {
   // create game div
   $('#gameDiv').
     css('position', 'relative').
-    css('width', '800px').
-    css('height', '600px').
+    css('width', '300px').
+    //css('height', '100vh').
     css('background-color', 'black');
 
   // shuffle cards array
@@ -61,21 +200,23 @@ main: function() {
 
   // draw human cards
   truco.mano.humanCards.forEach(function(card, i) {
-    truco.drawCard(i, i * (truco.CARD_WIDTH + 4), 450);
+    truco.drawCard(i, i * (truco.CARD_WIDTH + 4), 200);
   });
 
   // draw computer cards
   truco.mano.computerCards.forEach(function(card, i) {
-    truco.drawComputerCard(i, 1 + i * (truco.COMP_CARD_WIDTH + 4), 10);
+    //truco.drawCompCard(i, 1 + i * (truco.COMP_CARD_WIDTH + 4), 10);
   });
 
   console.info(this.mano);
 
   $('#gameDiv').on('click', '.humanCard', truco.playCard);
 
-  truco.drawMenu();
+  //truco.drawMenu();
 
-  truco.drawScore(500, 0);
+  truco.drawScore(0, 40);
+
+  //truco.drawCantar();
 
   
 
@@ -96,36 +237,32 @@ main: function() {
 },
 
 moveCompCard: function(i) {
+  truco.drawCompCard(i);
+},
+
+drawCompCard: function(i) {
 
   // Get random card destination.
-  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
-  const y = 240 + Math.floor(Math.random() * 30);
+  const x = 10 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 20);
+  const y = 20 + Math.floor(Math.random() * 10);
 
-  // Put card div on top of z index.
-  $('#computerCardDiv_' + i).css('z-index', truco.mano.playedCards.length);
+  const cardDiv = document.getElementById('compCard_' + i);
+  cardDiv.style.left = x + 'px';
+  cardDiv.style.top = y + 'px';
+  cardDiv.style.zIndex = truco.mano.playedCards.length;
+  cardDiv.style.display = 'block';
 
-
-  $('#computerCardDiv_' + i).animate({ left: x,
-                                       top: y,
-                                       width: truco.CARD_WIDTH,
-                                       height: truco.CARD_HEIGHT,
-                                       backgroundSize: '100%'
-                                     }, 2000, function() { truco.showCompCard(i) });
+  setTimeout(function() { truco.showCompCard(i) }, 500);
 
 },
 
 showCompCard: function(i) {
-  
-  // Card image position.
-  const cardX = truco.mano.computerCards[i] % 10 * -truco.CARD_WIDTH;
-  const cardY = Math.floor(truco.mano.computerCards[i] / 10) * truco.CARD_HEIGHT;
 
-  $('#computerCardDiv_' + i).css({ backgroundImage: "url('naipes.png')",
-                                   backgroundSize: truco.CARD_WIDTH * 10 + 'px '
-                                                   + truco.CARD_HEIGHT * 4 + 'px',
-                                   backgroundPositionX: cardX,
-                                   backgroundPositionY: cardY
-                                 });
+  const cardDiv = document.getElementById('compCard_' + i);
+  cardDiv.style.backgroundImage = "url('naipes.png')";
+  cardDiv.style.backgroundSize = truco.CARD_WIDTH * 10 + 'px ' + truco.CARD_HEIGHT * 4 + 'px';
+  cardDiv.style.backgroundPositionX = (truco.mano.computerCards[i] % 10 * -truco.CARD_WIDTH) + 'px';
+  cardDiv.style.backgroundPositionY = (Math.floor(truco.mano.computerCards[i] / 10) * truco.CARD_HEIGHT) + 'px';
 
   if (truco.nextPlayer() == truco.HUMAN) {
     truco.enableHumanCards();
@@ -153,10 +290,10 @@ getNextCompCard: function() {
  */
 drawScore: function(left, top, humanPoints, computerPoints) {
 
-  const PENCIL_WIDTH = 5;
-  const PENCIL_LONG = 40;
-  const INTRA_HORIZONTAL_MARGIN = 2;
-  const INTRA_VERTICAL_MARGIN = 2;
+  const PENCIL_WIDTH = 3;
+  const PENCIL_LONG = 20;
+  const INTRA_HORIZONTAL_MARGIN = 1;
+  const INTRA_VERTICAL_MARGIN = 1;
 
   /**
    * Draw score square.
@@ -182,7 +319,7 @@ drawScore: function(left, top, humanPoints, computerPoints) {
     }
 
     if (points > 4) {
-        for (var i = 0; i < 31; i += 3) {
+        for (var i = 0; i < 16; i += 3) {
           drawDiv(left + i, top + i, PENCIL_WIDTH, PENCIL_WIDTH, COLOR);
         }
     }
@@ -207,73 +344,95 @@ drawScore: function(left, top, humanPoints, computerPoints) {
       const col = Math.floor(i / SQUARES_PER_COL);
       const pointsInSquare = (i == Math.floor(points / POINTS_PER_SQUARE) ? points % POINTS_PER_SQUARE
                                                                           : POINTS_PER_SQUARE);
-      drawSquare(left + 10 + 60 * col, top + 60 + 50 * row, pointsInSquare);
+      drawSquare(left + 30 + 30 * col, top + 30 + 25 * row, pointsInSquare);
     }
   }
 
   // remove score div if exists.
   $('#scoreDiv').remove();
 
-  $('<div></div>').appendTo('#gameDiv').attr('id',               'scoreDiv').
-                                         css('position',         'absolute').
-                                         css('background-color', 'green').
-                                         css('left',             left + 'px').
-                                         css('top',              top + 'px').
-                                         css('width',            '250px').
-                                         css('height',           '220px');
+  $('<div></div>').appendTo('#scoreContainer').attr('id',               'scoreDiv');
+                                               //css('position',         'absolute').
+                                         //css('background-color', 'green').
+                                               //css('right',             '10px').
+                                         //css('top',              top + 'px').
+                                               //css('width',            '200px').
+                                               //css('height',           '220px');
 
   // split line
-  drawDiv(115, 0, 10, 220, truco.TEXT_COLOR);
+  drawDiv(90, 0, 5, 100, truco.TEXT_COLOR);
 
   // H
-  drawDiv(40, top + 10, 30, 30, 'default').css('font-size', '2em').
+  drawDiv(40, 0, 30, 30, 'default').css('font-size', '1em').
                                             html('H');
 
   // C
-  drawDiv(170, top + 10, 30, 30, 'default').css('font-size', '2em').
+  drawDiv(115, 0, 30, 30, 'default').css('font-size', '1em').
                                             html('C');
 
   drawX(0, 0, 18);  
-  drawX(100, 0, 22);
+  drawX(75, 0, 22);
 
 },
 
-drawMenu: function() {
+showMenu: function() {
 
-  $('<div></div>').appendTo('#gameDiv').
-    attr('id', 'menu').
-    css('position', 'absolute').
-    css('left', '400px').
-    css('bottom', '30px').
-    css('width', '400px');
+  console.info('showMenu');
+  const menuElem = document.getElementById('menu');
 
-  truco.drawMenuOption('Contra flor al resto');
-  truco.drawMenuOption('Me voy');
-  truco.drawMenuOption('Quiero');
-  truco.drawMenuOption('No quiero');
-  truco.drawMenuOption('Falta envido');
+  menuElem.style.maxWidth = '300px';
+  menuElem.style.maxHeight = '300px';
+  menuElem.style.animation = 'open-menu-animation';
+  menuElem.style.animationDuration = '500ms';
+
+  /*truco.drawMenuOption('FLOR', '-> C.Flor.Resto', function() {});
+  truco.drawMenuOption('ME_VOY', '-> Me voy', function() {});
+  truco.drawMenuOption('QUIERO', '-> Quiero', function() {});
+  truco.drawMenuOption('NO_QUIERO', '-> No quiero', function() {});
+  truco.drawMenuOption('FALTA_ENVIDO', '-> Falta envido', function() {});
+  truco.drawMenuOption('BACK', '<-', truco.closeMenu);*/
 
 },
 
-drawMenuOption: function(text) {
+drawMenuOption: function(code, text, func) {
 
   $('<div>' + text + '</div>').appendTo('#menu').
+    attr('class', 'menu-option').
     css('cursor', 'pointer').
-    css('padding', '2px 0 2px 15px').
-    hover(function() {
-            $(this).css('background-color', '#EEEEEE').
-                    css('color', 'black');
-          }, function(){
+    css('position', 'relative').
+    //css('width', '100%').
+    css('height', '50px').
+    css('padding-left', '10px').
+    click(func);
+    /*hover(function() {
             $(this).css('background-color', 'black').
                     css('color', '#EEEEEE');
-          });
+          }, function(){
+            $(this).css('background-color', '#EEEEEE').
+                    css('color', 'black');
+          });*/
 
+  //$('#menu').animate({ height: '330px'}, 500);
 },
 
-playCard: function() {
+closeMenu: function() {
+  //
+  const menuElem = document.getElementById('menu');
+  
+  menuElem.style.maxWidth = 0;
+  menuElem.style.maxHeight = 0;
+  menuElem.style.animation = 'close-menu-animation';
+  menuElem.style.animationDuration = '500ms';
+  
+  /*$('#menu').css('width', '0%').
+             css('height', '0px').
+             css('animation', 'close-animation').
+             css('animation-duration', '500ms');*/
 
-  // Get card index.
-  const i = $(this).data('i');
+  //ssetTimeout(function() { menuElem.style.show = 'none'; }, 500);
+},
+
+playCard: function(i) {
 
   // Get card.
   const card = truco.mano.humanCards[i];
@@ -287,16 +446,32 @@ playCard: function() {
   // Push played card on playedCards array.
   truco.mano.playedCards.push(card);
 
+  
+  // Get card DOM element.
+  const cardElem = document.getElementById('card_' + i);
+
   // Put card div on top of z index.
-  $(this).css('z-index', truco.mano.playedCards.length);
+  cardElem.style.zIndex = truco.mano.playedCards.length;
 
   truco.disableHumanCards();
 
   // Get random card destination.
-  const x = 30 + Math.floor((truco.mano.playedCards.length - 1) / 2) * 60 + Math.floor(Math.random() * 40);
-  const y = 240 + Math.floor(Math.random() * 30);
+  const origX = cardElem.style.left.substring(0, cardElem.style.left.length - 2);
+  const destX = 10 + Math.floor((truco.mano.playedCards.length - 1) / 2) * truco.CARD_WIDTH + Math.floor(Math.random() * 20);
+  const dX = destX - origX;
+  const dY = -85 + Math.floor(Math.random() * 20);
 
-  $(this).animate({ left: x, top: y }, 200, function() { truco.playCardAfterAnimation(); });
+  /*
+  const currentLeftStr = $(this).css('left');
+  const currentTopStr = $(this).css('top');
+  const currentLeft = currentLeftStr.substring(0, currentLeftStr.length - 2);
+  const currentTop = currentTopStr.substring(0, currentTopStr.length - 2);*/
+
+  cardElem.style.cursor = 'default';
+  cardElem.style.transform = 'translate(' + dX + 'px,' + dY + 'px)';
+
+  setTimeout(truco.playCardAfterAnimation, 500);
+  //$(this).animate({ left: x, bottom: y }, 200, function() { truco.playCardAfterAnimation(); });
 
 },
 
@@ -315,51 +490,24 @@ playCardAfterAnimation: function() {
 
 drawCard: function(i, x, y) {
 
-  $('<div></div>').appendTo('#gameDiv').
-    attr('id', 'humanCardDiv_' + i).
-    addClass('humanCard').
-    data('i', i).
-    css('background-image', "url('naipes.png')").
-    css('position', 'absolute').
-    css('width', truco.CARD_WIDTH + 'px').
-    css('height', truco.CARD_HEIGHT + 'px').
-    css('background-size',
-                  truco.CARD_WIDTH * 10 + 'px ' + truco.CARD_HEIGHT * 4 + 'px').
-    css('left', x + 'px').
-    css('top', y + 'px').
-    css('background-position-x',
-                      truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH + 'px').
-    css('background-position-y',
-          Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT + 'px');
+  const cardElem = document.getElementById('card_' + i);
 
-},
-
-drawComputerCard: function(i, x, y) {
-
-  $('<div></div>').appendTo('#gameDiv').
-    attr('id', 'computerCardDiv_' + i).
-    addClass('computerCard').
-    data('i', i).
-    css('background-image', "url('atras.png')").
-    css('position', 'absolute').
-    css('width', truco.COMP_CARD_WIDTH + 'px').
-    css('height', truco.COMP_CARD_HEIGHT + 'px').
-    css('background-size', '100%').
-    css('left', x + 'px').
-    css('top', y + 'px');
+  cardElem.style.left = x + 'px';
+  cardElem.style.backgroundPositionX = truco.mano.humanCards[i] % 10 * -truco.CARD_WIDTH + 'px';
+  cardElem.style.backgroundPositionY = Math.floor(truco.mano.humanCards[i] / 10) * truco.CARD_HEIGHT + 'px';
 
 },
 
 enableHumanCards: function() {
 
-  $('.humanCard').css('cursor', 'pointer');
+  //$('.humanCard').css('cursor', 'pointer');
   truco.cardsEnabled = true;
 
 },
 
 disableHumanCards: function() {
 
-  $('.humanCard').css('cursor', 'default');
+  //$('.humanCard').css('cursor', 'default');
   truco.cardsEnabled = false;
 
 },
@@ -429,21 +577,8 @@ getRandomInt: function(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }};
 
-$(function() { truco.main(); });
+truco.main();
 
 </script>
-</head>
-<body style="background:black">
-<div id="gameDiv" style="color:#EEEEEE; font-family:commodore_64regular; font-size:140%; margin:auto">
-  <div style="width:500px">
-    <br /><br /><br /><br />
-  Aqui' me pongo a cantar
-  Al compa's de la vigüela,
-  que el hombre que lo desvela
-  una pena estrordinaria,
-  como la ave solitaria
-  con el cantar se consuela.
-  </div>
-</div>
 </body>
 </html>
